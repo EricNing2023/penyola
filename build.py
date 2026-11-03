@@ -91,12 +91,13 @@ GUIDES = [
     ('summerpalace', 'Summer Palace', '颐和园', 'Unlock All Guides', 'Kunming Lake, Longevity Hill and the Long Corridor, with walking routes around the lake.'),
 ]
 
-SHOTS = [
-    ('02', 'Every detail has a story', 'Lions, cranes and roof beasts, each with its own page on the map.'),
-    ('03', 'Listen as you explore', 'Narrated audio stories in English for every highlight.'),
-    ('04', 'Routes that fit your time', 'Walking times, distances and stops, planned for you.'),
-    ('05', 'See what others walk past', 'Small treasures beside the famous halls.'),
-    ('06', 'No signal? No problem.', 'Maps, stories and audio live on your phone.'),
+BUILDINGS = [
+    ('hall-of-supreme-harmony', 'Hall of Supreme Harmony', 'Forbidden City'),
+    ('meridian-gate', 'Meridian Gate', 'Forbidden City'),
+    ('wanchun', 'Wanchun Pavilion', 'Jingshan Park'),
+    ('palace-of-heavenly-purity', 'Palace of Heavenly Purity', 'Forbidden City'),
+    ('gate-of-divine-might', 'Gate of Divine Might', 'Forbidden City'),
+    ('imperial-garden', 'Imperial Garden', 'Forbidden City'),
 ]
 
 FEATURES = [
@@ -110,30 +111,30 @@ FEATURES = [
 
 # Maps in development, chosen from the most complete packages; previews only, no dates promised.
 NEXT = [
-    ('temple-of-heaven', 'Temple of Heaven', 'Beijing', '天坛', 800, 751),
+    ('temple-of-heaven', 'Temple of Heaven', 'Beijing', '天坛', 800, 752),
     ('gulangyu', 'Gulangyu Island', 'Xiamen', '鼓浪屿', 800, 800),
-    ('chengde', 'Chengde Mountain Resort', 'Hebei', '避暑山庄', 800, 862),
-    ('jiayuguan', 'Jiayuguan Fortress', 'Gansu', '嘉峪关', 800, 934),
     ('lingering-garden', 'Lingering Garden', 'Suzhou', '留园', 800, 876),
-    ('huangshan', 'Huangshan', 'Anhui', '黄山', 800, 677),
+    ('wuhou-shrine', 'Wuhou Shrine', 'Chengdu', '武侯祠', 800, 837),
+    ('chengde', 'Chengde Mountain Resort', 'Hebei', '避暑山庄', 800, 867),
+    ('jiayuguan', 'Jiayuguan Fortress', 'Gansu', '嘉峪关', 1016, 800),
 ]
 
 guides = ''.join(f"""
       <article class="guide">
-        <div class="guide-map"><img src="assets/img/map-{key}.webp" alt="Hand-drawn map of {name}" loading="lazy" width="1000" height="{h}"></div>
+        <div class="guide-map"><img src="assets/img/map-{key}.webp" alt="Hand-drawn map of {name}" loading="lazy" width="{w}" height="{h}"></div>
         <div class="guide-text">
           <p class="tag{' free' if tag == 'Free' else ''}">{tag}</p>
           <h3>{name} <span class="zh" lang="zh-Hans">{zh}</span></h3>
           <p>{text}</p>
         </div>
-      </article>""" for (key, name, zh, tag, text), h in zip(GUIDES, (1202, 1250, 1168)))
+      </article>""" for (key, name, zh, tag, text), (w, h) in zip(GUIDES, ((1000, 1202), (1100, 1374), (1000, 1168))))
 
 features = ''.join(f"""
       <li><h3>{title}</h3><p>{text}</p></li>""" for title, text in FEATURES)
 
-shots = ''.join(f"""
-      <figure><img src="assets/img/shot-{n}.webp" alt="{cap}. {sub}" loading="lazy" width="720" height="1564"></figure>"""
-                for n, cap, sub in SHOTS)
+buildings = ''.join(f"""
+      <figure class="bld"><img src="assets/img/bld-{key}.webp" alt="Hand-drawn illustration of the {name}" loading="lazy" width="640" height="640"><figcaption><strong>{name}</strong>{site}</figcaption></figure>"""
+                    for key, name, site in BUILDINGS)
 
 upcoming = ''.join(f"""
       <figure class="next">
@@ -153,7 +154,7 @@ HOME = f"""
     </div>
     <div class="hero-art">
       <img class="hero-lion" src="assets/img/art-lion.webp" alt="" width="600" height="727">
-      <div class="hero-phone"><img src="assets/img/hero.webp" alt="Penyola showing the hand-drawn Forbidden City map" width="530" height="1118"></div>
+      <div class="hero-map"><img src="assets/img/map-forbiddencity.webp" alt="Hand-drawn map of the Forbidden City" width="1100" height="1374"></div>
     </div>
   </div>
 </section>
@@ -183,11 +184,12 @@ HOME = f"""
     <div class="story-text">
       <p class="eyebrow">Every detail has a story</p>
       <h2>See what most visitors walk past</h2>
-      <p>Bronze lions guarding the gates, the crane and tortoise before the throne hall, the sundial that told imperial time. Penyola points them out on the map and tells you why they are there.</p>
+      <p>Bronze lions guarding the gates, the crane and tortoise before the throne hall, a golden celestial globe, the sundial that told imperial time. Penyola points them out on the map and tells you why they are there.</p>
     </div>
     <div class="relics" aria-hidden="true">
       <img src="assets/img/art-crane.webp" alt="" loading="lazy" width="600" height="600">
-      <img src="assets/img/art-throne.webp" alt="" loading="lazy" width="600" height="600">
+      <img src="assets/img/art-tortoise.webp" alt="" loading="lazy" width="600" height="600">
+      <img src="assets/img/art-globe.webp" alt="" loading="lazy" width="600" height="600">
       <img src="assets/img/art-sundial.webp" alt="" loading="lazy" width="600" height="600">
     </div>
   </div>
@@ -201,7 +203,17 @@ HOME = f"""
     </div>
     <ul class="features">{features}
     </ul>
-    <div class="shots" tabindex="0" aria-label="App screenshots">{shots}
+  </div>
+</section>
+
+<section class="band paper">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Drawn by hand</p>
+      <h2>Every building, illustrated</h2>
+      <p class="lede">Each guide pairs its map with watercolour-style drawings of the halls, gates and pavilions you'll walk through.</p>
+    </div>
+    <div class="blds">{buildings}
     </div>
   </div>
 </section>
@@ -233,7 +245,7 @@ HOME = f"""
       <p class="note">Price shown is for the United States; the App Store shows your local price.</p>
       <div class="cta">{store_button()}</div>
     </div>
-    <img class="price-shot" src="assets/img/shot-07.webp" alt="The Unlock All Guides purchase screen" loading="lazy" width="720" height="1564">
+    <img class="price-art" src="assets/img/art-throne.webp" alt="" loading="lazy" width="600" height="600">
   </div>
 </section>
 """

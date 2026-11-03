@@ -22,5 +22,5 @@ Fonts: Manrope, SIL Open Font License 1.1 (`assets/fonts/OFL.txt`).
 Before release, `RELEASED = False` in `build.py` shows a non-link "Coming soon to the App Store" badge.
 When the app is live, set it to `True`, rebuild and push. The badges then link to the App Store page.
 
-The "In the works" section on the home page (`NEXT` in `build.py`) previews maps still in development,
+The "In the works" section on the home page (`NEXT` in `build.py`) previews maps still in development (area-focused site maps only, no mountain landscapes),
 from `penyola-artifacts/test-catalog/`. It promises no dates. Update it as guides ship.
