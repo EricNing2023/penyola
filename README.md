@@ -3,6 +3,7 @@
 Public site for the Penyola iOS app, served by GitHub Pages from the root of `main`:
 https://ericning2023.github.io/penyola/
 
+- `demo.html` in-browser demo of the free Jingshan guide (data exported from penyola-release by `build_demo()`)
 - `index.html` home · `support.html` support + FAQ (App Store Support URL is the site root)
 - `privacy.html` (App Store Privacy Policy URL) · `terms.html` · `credits.html`
 

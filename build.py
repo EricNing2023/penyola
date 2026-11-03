@@ -19,7 +19,7 @@ RELEASED = False  # flip to True once the app is live on the App Store, then reb
 
 CSS_VERSION = hashlib.sha1((SITE / 'assets/site.css').read_bytes()).hexdigest()[:8]  # busts the Pages cache
 
-NAV = [('index.html', 'Home'), ('support.html', 'Support'), ('privacy.html', 'Privacy'), ('credits.html', 'Credits')]
+NAV = [('index.html', 'Home'), ('demo.html', 'Try it'), ('support.html', 'Support'), ('privacy.html', 'Privacy'), ('credits.html', 'Credits')]
 
 
 def legal_body(name):
@@ -29,7 +29,7 @@ def legal_body(name):
     return re.search(r'<body>(.*)</body>', html, re.S).group(1).strip()
 
 
-def page(file, title, description, main, body_class=''):
+def page(file, title, description, main, body_class='', scripts=''):
     nav = ''.join(f'<a href="{href}"{" aria-current=\"page\"" if href == file else ""}>{label}</a>'
                   for href, label in NAV)
     url = BASE + ('' if file == 'index.html' else file)
@@ -70,7 +70,7 @@ def page(file, title, description, main, body_class=''):
     <p class="fine">Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>. Penyola is an independent guide and is not affiliated with the management of these sites. © 2026 Hong Ning.</p>
   </div>
 </footer>
-</body>
+{scripts}</body>
 </html>
 '''
 
@@ -91,13 +91,18 @@ GUIDES = [
     ('summerpalace', 'Summer Palace', '颐和园', 'Unlock All Guides', 'Kunming Lake, Longevity Hill and the Long Corridor, with walking routes around the lake.'),
 ]
 
-BUILDINGS = [
-    ('hall-of-supreme-harmony', 'Hall of Supreme Harmony', 'Forbidden City'),
-    ('meridian-gate', 'Meridian Gate', 'Forbidden City'),
-    ('wanchun', 'Wanchun Pavilion', 'Jingshan Park'),
-    ('palace-of-heavenly-purity', 'Palace of Heavenly Purity', 'Forbidden City'),
-    ('gate-of-divine-might', 'Gate of Divine Might', 'Forbidden City'),
-    ('imperial-garden', 'Imperial Garden', 'Forbidden City'),
+# Illustrations from the guides and from guides in development. Ones drawn after a photograph carry
+# the photo's credit (author, licence, source), as the licences require.
+GALLERY = [
+    ('hall-of-supreme-harmony', 'Hall of Supreme Harmony', 'Forbidden City', None),
+    ('leshan-buddha', 'Leshan Giant Buddha', 'Sichuan', ('王计', 'CC BY 2.5', 'https://creativecommons.org/licenses/by/2.5/', 'https://commons.wikimedia.org/wiki/File:Leshan_Giant_Buddha,_20161101.jpg')),
+    ('longmen', 'Fengxian Temple, Longmen Grottoes', 'Henan', ('Gary Todd', 'CC0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'https://commons.wikimedia.org/wiki/File:Fengxian_Temple_(Grand_Buddha_Niche),_Longmen_Grottoes_(14250928764).jpg')),
+    ('mogao', 'Nine-Storey Pagoda, Mogao Caves', 'Gansu', ('N509FZ', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/', 'https://commons.wikimedia.org/wiki/File:Cave_96_of_Mogao_Grottoes_(20230918151944).jpg')),
+    ('wanchun', 'Wanchun Pavilion', 'Jingshan Park', None),
+    ('greeting-pine', 'Greeting Pine, Huangshan', 'Anhui', ('Memes', 'CC BY-SA 3.0', 'https://creativecommons.org/licenses/by-sa/3.0/', 'https://commons.wikimedia.org/wiki/File:Ying_Ke_Pine.JPG')),
+    ('jiuzhaigou', 'Five-Colour Pond, Jiuzhaigou', 'Sichuan', ('a Wikimedia Commons contributor', 'CC0', 'https://creativecommons.org/publicdomain/zero/1.0/', 'https://commons.wikimedia.org/wiki/File:Colorful_Pond_20260511-1.jpg')),
+    ('stone-forest', 'Stone Forest', 'Yunnan', None),
+    ('elephant-trunk-hill', 'Elephant Trunk Hill', 'Guilin', ('螺钉', 'CC BY-SA 3.0', 'https://creativecommons.org/licenses/by-sa/3.0/', 'https://commons.wikimedia.org/wiki/File:Elephant_Trunk_Hill,_Guilin.jpg')),
 ]
 
 FEATURES = [
@@ -132,9 +137,17 @@ guides = ''.join(f"""
 features = ''.join(f"""
       <li><h3>{title}</h3><p>{text}</p></li>""" for title, text in FEATURES)
 
-buildings = ''.join(f"""
-      <figure class="bld"><img src="assets/img/bld-{key}.webp" alt="Hand-drawn illustration of the {name}" loading="lazy" width="640" height="640"><figcaption><strong>{name}</strong>{site}</figcaption></figure>"""
-                    for key, name, site in BUILDINGS)
+def gallery_credit(credit):
+    if not credit:
+        return ''
+    author, licence, licence_url, source = credit
+    return (f'<small class="credit">Drawn after a <a href="{source}">photo</a> by {author}, '
+            f'<a href="{licence_url}">{licence}</a></small>')
+
+
+gallery = ''.join(f"""
+      <figure class="bld{' fit' if key == 'wanchun' else ''}"><img src="assets/img/bld-{key}.webp" alt="Illustration of {name}" loading="lazy" width="800" height="600"><figcaption><strong>{name}</strong>{place}{gallery_credit(credit)}</figcaption></figure>"""
+                  for key, name, place, credit in GALLERY)
 
 upcoming = ''.join(f"""
       <figure class="next">
@@ -149,7 +162,7 @@ HOME = f"""
       <p class="eyebrow">Offline audio guide · Beijing</p>
       <h1>Beijing's imperial sights, beautifully drawn.</h1>
       <p class="lede">An English guide for international visitors to Jingshan Park, the Forbidden City and the Summer Palace. Hand-drawn maps, narrated stories and ready-made walking routes, all on your iPhone, with no connection needed.</p>
-      <div class="cta">{store_button()}<a class="text-link" href="#guides">See the guides ↓</a></div>
+      <div class="cta">{store_button()}<a class="text-link" href="demo.html">Try the free guide →</a></div>
       <p class="note">{'Free to download for iPhone.' if RELEASED else 'Launching soon for iPhone.'} Jingshan Park is free; one purchase unlocks the rest.</p>
     </div>
     <div class="hero-art">
@@ -165,6 +178,18 @@ HOME = f"""
     <p><strong>129</strong>illustrated highlights</p>
     <p><strong>150+</strong>audio stories</p>
     <p><strong>0</strong>bars of signal needed</p>
+  </div>
+</section>
+
+<section class="tryit">
+  <div class="wrap tryit-inner">
+    <img src="assets/img/map-jingshan.webp" alt="" loading="lazy" width="1000" height="1202">
+    <div>
+      <p class="eyebrow">Try it now</p>
+      <h2>Walk Jingshan Park in your browser</h2>
+      <p>Open the free Jingshan Park guide right here: tap places on the hand-drawn map, listen to the audio stories and follow a suggested route.</p>
+      <a class="btn" href="demo.html">Open the guide →</a>
+    </div>
   </div>
 </section>
 
@@ -210,10 +235,10 @@ HOME = f"""
   <div class="wrap">
     <div class="head">
       <p class="eyebrow">Drawn by hand</p>
-      <h2>Every building, illustrated</h2>
-      <p class="lede">Each guide pairs its map with watercolour-style drawings of the halls, gates and pavilions you'll walk through.</p>
+      <h2>Palaces, grottoes, giant Buddhas and wild places</h2>
+      <p class="lede">Every guide comes with watercolour-style drawings of what you'll see: imperial halls today, and soon cave temples, carved Buddhas, karst peaks and lakes from the guides we're drawing now.</p>
     </div>
-    <div class="blds">{buildings}
+    <div class="blds">{gallery}
     </div>
   </div>
 </section>
@@ -249,6 +274,7 @@ HOME = f"""
   </div>
 </section>
 """
+
 
 SUPPORT = f'''
 <section class="doc wrap">
@@ -289,17 +315,166 @@ def legal_page(main_html, extra_class='legal'):
     return f'<section class="doc wrap {extra_class}">\n{main_html}\n</section>'
 
 
+
+def build_demo():
+    """Export the free Jingshan Park guide for the in-browser demo (demo.html).
+
+    Positions come from the app's own data: cultural anchors where the guide has them, otherwise
+    the route graph's endpoints projected onto the hand-drawn map (Web Mercator over manifest bounds).
+    """
+    import math, shutil, subprocess
+    src = RELEASE / 'app/engine/iphone/Maps/ScenicResources/jingshan'
+    out = SITE / 'assets/demo'
+    load = lambda name: json.loads((src / name).read_text())
+    manifest, routes = load('manifest.json'), load('routes.json')
+    details, guide = load('historical_details.json'), load('cultural/guide.json')
+    presentation, audio, info = load('cultural/presentation.json'), load('audio/index.json'), load('site_information.json')
+    west, south, east, north = manifest['bounds']
+    merc = lambda lat: math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
+
+    def uv(lon, lat):
+        return [round((lon - west) / (east - west), 5), round((merc(north) - merc(lat)) / (merc(north) - merc(south)), 5)]
+
+    segments, alias = routes['segments'], routes['stop_aliases']
+    endpoint = {}
+    for key, seg in segments.items():
+        a, b = key.split('|')
+        coords = seg['recommended']['coordinates']
+        endpoint.setdefault(a, coords[0]); endpoint.setdefault(b, coords[-1])
+    places = {pl['id']: pl for pl in routes['places']}
+    anchors = {poi['id']: [round(poi['anchor']['u'], 5), round(poi['anchor']['v'], 5)] for poi in guide['pois']}
+    pres = {poi['id']: poi for poi in presentation['pois']}
+
+    def position(pid):
+        if pid in anchors:
+            return anchors[pid]
+        c = endpoint.get(pid) or endpoint.get(alias.get(pid, ''))
+        if c:
+            return uv(*c)
+        pl = places.get(pid)
+        return uv(pl['lon'], pl['lat']) if pl else None
+
+    (out / 'art').mkdir(parents=True, exist_ok=True)
+    pois, intro = [], None
+    for d in details:
+        pid, key = d['poi_id'], d['poi_id'].replace('/', '-')
+        pr = pres.get(pid, {})
+        clip = audio['clips'].get(key)
+        item = {'id': pid, 'name': d['title'], 'category': pr.get('category') or d['category'],
+                'summary': pr.get('summary') or d['summary'], 'story': pr.get('story') or d['story'],
+                'source': d.get('source_url'), 'pos': position(pid)}
+        if clip:
+            item['audio'] = {}
+            for voice, c in clip.items():
+                dst = out / 'audio' / voice / f'{key}.mp3'
+                if not dst.exists():
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', str(src / c['path']), '-ac', '1', '-b:a', '64k', str(dst)], check=True)
+                item['audio'][voice] = {'src': f'assets/demo/audio/{voice}/{key}.mp3', 'seconds': round(c['seconds'])}
+        if pr.get('art'):
+            art = pathlib.Path(pr['art']).stem
+            dst = out / 'art' / f'{art}.webp'
+            if not dst.exists():
+                subprocess.run(['cwebp', '-quiet', '-q', '80', '-resize', '640', '0', str(src / pr['art']), '-o', str(dst)], check=True)
+            item['art'] = f'assets/demo/art/{art}.webp'
+        if pid == 'way/29201967':
+            intro = item
+        elif item['pos']:
+            pois.append(item)
+
+    def leg(a, b):
+        for x, y, flip in ((a, b, False), (b, a, True), (alias.get(a, a), alias.get(b, b), False), (alias.get(b, b), alias.get(a, a), True)):
+            seg = segments.get(f'{x}|{y}')
+            if seg:
+                rec = seg['recommended']
+                coords = rec['coordinates'][::-1] if flip else rec['coordinates']
+                return {'distance_m': rec['distance_m'], 'path': [uv(*c) for c in coords]}
+        return None
+
+    names = {pl['id']: pl['name'] for pl in routes['places']}
+    names.update({d['poi_id']: d['title'] for d in details})
+    demo_routes = []
+    for preset in routes['presets']:
+        stops = [{'id': sid, 'name': names.get(sid, 'Stop'), 'pos': position(sid)} for sid in preset['stop_ids']]
+        legs = [leg(a['id'], b['id']) for a, b in zip(stops, stops[1:])]
+        if all(legs) and all(st['pos'] for st in stops):
+            for st, lg in zip(stops[1:], legs):
+                st['pos'] = lg['path'][-1]
+            stops[0]['pos'] = legs[0]['path'][0]
+            demo_routes.append({'id': preset['id'], 'title': preset['title'], 'minutes': preset['estimated_minutes'],
+                                'stops': stops, 'legs': legs})
+    entrances = [{'name': names[e], 'pos': position(e)} for e in ('node/1382551889', 'node/733788771', 'node/733788916')]
+    data = {
+        'name': manifest['name'], 'map': {'src': 'assets/img/map-jingshan.webp', 'width': 1000, 'height': 1202},
+        'intro': intro, 'pois': pois, 'entrances': entrances, 'routes': demo_routes,
+        'route_note': routes['access_review']['notice'] + ' Times assume walking at 65 m/min plus 10 minutes per sight.',
+        'info': {k: info[k] for k in ('address', 'address_chinese', 'opening_hours', 'ticket_prices', 'public_transport', 'reservation')},
+    }
+    (out / 'jingshan.json').write_text(json.dumps(data, ensure_ascii=False, separators=(',', ':')))
+    return len(pois), len(demo_routes)
+
+
+DEMO_STATS = build_demo()
+
+DEMO = f"""
+<section class="demo-head wrap">
+  <p class="eyebrow">Try it in your browser</p>
+  <h1>Jingshan Park, the free guide</h1>
+  <p class="lede">This is the real Jingshan Park guide from the app: the hand-drawn map, {DEMO_STATS[0]} highlights with narrated audio stories, {DEMO_STATS[1]} suggested walking routes and the visitor information. In the app it all works offline.</p>
+</section>
+<section class="wrap">
+  <div id="demo" class="demo">
+    <div class="dm-map" aria-label="Hand-drawn map of Jingshan Park">
+      <div class="dm-stage">
+        <img class="dm-map-img" alt="" width="1000" height="1202" draggable="false">
+        <svg class="dm-route" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="dm-markers"></div>
+      </div>
+      <div class="dm-zoom">
+        <button data-zoom="in" aria-label="Zoom in">+</button>
+        <button data-zoom="out" aria-label="Zoom out">−</button>
+        <button data-zoom="reset" aria-label="Show whole map">⤢</button>
+      </div>
+    </div>
+    <div class="dm-panel">
+      <div class="dm-tabs" role="tablist">
+        <button data-tab="highlights" role="tab" aria-selected="true">Highlights</button>
+        <button data-tab="routes" role="tab">Routes</button>
+        <button data-tab="info" role="tab">Visit info</button>
+      </div>
+      <div class="dm-panel-body"><p class="dm-hint">Loading the guide…</p></div>
+      <div class="dm-player" hidden>
+        <span class="dm-player-name"></span><span class="dm-player-time"></span>
+        <div class="dm-progress"><i></i></div>
+        <button class="dm-player-toggle">Pause</button><button class="dm-player-close" aria-label="Stop">✕</button>
+      </div>
+    </div>
+  </div>
+  <div class="demo-cta">
+    <p><strong>The Forbidden City and the Summer Palace</strong> work the same way, with more highlights, longer routes and their own illustrations. {'Get Penyola on the App Store.' if RELEASED else 'Penyola is coming soon to the App Store.'}</p>
+    {store_button()}
+  </div>
+</section>
+"""
+
+
+SITE_CREDITS = '<h2>Website illustrations</h2>\n  <p>Some illustrations on this website come from guides still in development. Where one was drawn after a photograph, the photographer and licence are credited below; each adapted illustration is shared under the same licence as its source.</p>\n  <ul>' + ''.join(
+    f'\n    <li><strong>{name}</strong> &mdash; drawn after a <a href="{c[3]}">photograph</a> by {c[0]}, Wikimedia Commons, <a href="{c[2]}">{c[1]}</a></li>'
+    for _, name, _, c in GALLERY if c) + '\n  </ul>'
+
 pages = {
     'index.html': ("Penyola – Offline guide to Beijing's imperial sights",
                    'Hand-drawn maps, audio stories and walking routes for Jingshan Park, the Forbidden City and the Summer Palace. Works offline. Jingshan Park is free.',
                    HOME, 'home'),
+    'demo.html': ('Try the Jingshan Park guide – Penyola', 'Try the free Jingshan Park guide from Penyola in your browser: hand-drawn map, audio stories and suggested walking routes.', DEMO, 'demo-page'),
     'support.html': ('Support – Penyola', 'Contact Penyola support and answers to common questions about offline use, purchases and restoring.', SUPPORT, ''),
     'privacy.html': ('Privacy Policy – Penyola', 'Penyola collects no data: no accounts, no analytics, no ads.', legal_page(legal_body('privacy')), ''),
     'terms.html': ('Terms of Use – Penyola', 'Terms of use for the Penyola app.', legal_page(legal_body('terms')), ''),
     'credits.html': ('Credits – Penyola', 'Content credits, map data attribution and open-source notices for Penyola.',
-                     legal_page(legal_body('content-credits') + '\n<hr>\n' + legal_body('notice')), ''),
+                     legal_page(legal_body('content-credits') + '\n<hr>\n' + SITE_CREDITS + '\n<hr>\n' + legal_body('notice')), ''),
 }
 for file, (title, desc, main, cls) in pages.items():
-    (SITE / file).write_text(page(file, title, desc, main, cls))
+    scripts = '<script src="assets/demo.js?v=' + hashlib.sha1((SITE / 'assets/demo.js').read_bytes()).hexdigest()[:8] + '" defer></script>\n' if file == 'demo.html' else ''
+    (SITE / file).write_text(page(file, title, desc, main, cls, scripts))
 (SITE / '.nojekyll').write_text('')
 print(json.dumps(sorted(pages)))
