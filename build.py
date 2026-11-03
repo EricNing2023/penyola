@@ -6,7 +6,7 @@ published text never drifts from what users read in the app. Run after those fil
 
     python3 build.py [path/to/penyola-release]
 """
-import json, pathlib, re, sys
+import hashlib, json, pathlib, re, sys
 
 SITE = pathlib.Path(__file__).resolve().parent
 RELEASE = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else SITE.parent / 'penyola-release')
@@ -16,6 +16,8 @@ EMAIL = config['support_email']
 APP_STORE = 'https://apps.apple.com/app/id6821783513'
 BASE = 'https://ericning2023.github.io/penyola/'
 RELEASED = False  # flip to True once the app is live on the App Store, then rebuild
+
+CSS_VERSION = hashlib.sha1((SITE / 'assets/site.css').read_bytes()).hexdigest()[:8]  # busts the Pages cache
 
 NAV = [('index.html', 'Home'), ('support.html', 'Support'), ('privacy.html', 'Privacy'), ('credits.html', 'Credits')]
 
@@ -48,7 +50,7 @@ def page(file, title, description, main, body_class=''):
 <meta name="theme-color" content="#f8f3ea">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v={CSS_VERSION}">
 </head>
 <body class="{body_class}">
 <header class="top">
