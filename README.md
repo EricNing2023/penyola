@@ -18,3 +18,9 @@ This repository replaces the output of `penyola-release/tools/build_site.py`
 (`penyola-artifacts/site/`). Do not push from that older checkout, or the site reverts to the plain version.
 
 Fonts: Manrope, SIL Open Font License 1.1 (`assets/fonts/OFL.txt`).
+
+Before release, `RELEASED = False` in `build.py` shows a non-link "Coming soon to the App Store" badge.
+When the app is live, set it to `True`, rebuild and push. The badges then link to the App Store page.
+
+The "In the works" section on the home page (`NEXT` in `build.py`) previews maps still in development,
+from `penyola-artifacts/test-catalog/`. It promises no dates. Update it as guides ship.

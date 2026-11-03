@@ -15,6 +15,7 @@ config = json.loads((RELEASE / 'release-config.json').read_text())
 EMAIL = config['support_email']
 APP_STORE = 'https://apps.apple.com/app/id6821783513'
 BASE = 'https://ericning2023.github.io/penyola/'
+RELEASED = False  # flip to True once the app is live on the App Store, then rebuild
 
 NAV = [('index.html', 'Home'), ('support.html', 'Support'), ('privacy.html', 'Privacy'), ('credits.html', 'Credits')]
 
@@ -72,14 +73,20 @@ def page(file, title, description, main, body_class=''):
 '''
 
 
-def store_button(extra=''):
-    return f'''<a class="store{extra}" href="{APP_STORE}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.77-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.27-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.66zM14.1 5.84c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.1 1.76-.96 2.8 1.01.08 2.05-.52 2.68-1.28z"/></svg><span><small>Download on the</small>App Store</span></a>'''
+APPLE_LOGO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.77-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.27-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.66zM14.1 5.84c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.1 1.76-.96 2.8 1.01.08 2.05-.52 2.68-1.28z"/></svg>'
+
+
+def store_button():
+    # Until the app is live the App Store link 404s, so show a non-link badge instead.
+    if RELEASED:
+        return f'<a class="store" href="{APP_STORE}">{APPLE_LOGO}<span><small>Download on the</small>App Store</span></a>'
+    return f'<span class="store soon">{APPLE_LOGO}<span><small>Coming soon to the</small>App Store</span></span>'
 
 
 GUIDES = [
-    ('jingshan', 'Jingshan Park', 'Free', 'Climb to the hilltop pavilions for the classic view over the Forbidden City.'),
-    ('forbiddencity', 'Forbidden City', 'Unlock All Guides', 'Courtyards, halls, carved guardians and the stories behind them, with routes for a short visit or a full day.'),
-    ('summerpalace', 'Summer Palace', 'Unlock All Guides', 'Kunming Lake, Longevity Hill and the Long Corridor, with walking routes around the lake.'),
+    ('jingshan', 'Jingshan Park', '景山公园', 'Free', 'Climb to the hilltop pavilions for the classic view over the Forbidden City.'),
+    ('forbiddencity', 'Forbidden City', '故宫', 'Unlock All Guides', 'Courtyards, halls, carved guardians and the stories behind them, with routes for a short visit or a full day.'),
+    ('summerpalace', 'Summer Palace', '颐和园', 'Unlock All Guides', 'Kunming Lake, Longevity Hill and the Long Corridor, with walking routes around the lake.'),
 ]
 
 SHOTS = [
@@ -90,74 +97,144 @@ SHOTS = [
     ('06', 'No signal? No problem.', 'Maps, stories and audio live on your phone.'),
 ]
 
-guides = ''.join(f'''
-    <article class="guide">
-      <img src="assets/img/map-{key}.webp" alt="Hand-drawn map of {name}" loading="lazy" width="1000" height="{h}">
-      <div class="guide-text">
-        <p class="tag{' free' if tag == 'Free' else ''}">{tag}</p>
-        <h3>{name}</h3>
-        <p>{text}</p>
-      </div>
-    </article>''' for (key, name, tag, text), h in zip(GUIDES, (1202, 1250, 1168)))
+FEATURES = [
+    ('Hand-drawn maps', 'Every site is drawn by hand. Pinch, zoom and tap any building.'),
+    ('Stories for every highlight', '129 illustrated highlights, from throne halls to the roof beasts most visitors miss.'),
+    ('Narrated audio', '150+ audio stories in two English voices, to play as you walk.'),
+    ('Ready-made routes', 'Suggested walks with times and distances between stops.'),
+    ('Visitor essentials', 'Opening hours, ticket notes, entrances and a Chinese address card for your taxi driver.'),
+    ('Works offline', 'Everything is on your phone. No account, no sign-in, no ads.'),
+]
 
-shots = ''.join(f'''
-      <figure><img src="assets/img/shot-{n}.webp" alt="{cap}. {sub}" loading="lazy" width="720" height="1564"></figure>'''
+# Maps in development, chosen from the most complete packages; previews only, no dates promised.
+NEXT = [
+    ('temple-of-heaven', 'Temple of Heaven', 'Beijing', '天坛', 800, 751),
+    ('gulangyu', 'Gulangyu Island', 'Xiamen', '鼓浪屿', 800, 800),
+    ('chengde', 'Chengde Mountain Resort', 'Hebei', '避暑山庄', 800, 862),
+    ('jiayuguan', 'Jiayuguan Fortress', 'Gansu', '嘉峪关', 800, 934),
+    ('lingering-garden', 'Lingering Garden', 'Suzhou', '留园', 800, 876),
+    ('huangshan', 'Huangshan', 'Anhui', '黄山', 800, 677),
+]
+
+guides = ''.join(f"""
+      <article class="guide">
+        <div class="guide-map"><img src="assets/img/map-{key}.webp" alt="Hand-drawn map of {name}" loading="lazy" width="1000" height="{h}"></div>
+        <div class="guide-text">
+          <p class="tag{' free' if tag == 'Free' else ''}">{tag}</p>
+          <h3>{name} <span class="zh" lang="zh-Hans">{zh}</span></h3>
+          <p>{text}</p>
+        </div>
+      </article>""" for (key, name, zh, tag, text), h in zip(GUIDES, (1202, 1250, 1168)))
+
+features = ''.join(f"""
+      <li><h3>{title}</h3><p>{text}</p></li>""" for title, text in FEATURES)
+
+shots = ''.join(f"""
+      <figure><img src="assets/img/shot-{n}.webp" alt="{cap}. {sub}" loading="lazy" width="720" height="1564"></figure>"""
                 for n, cap, sub in SHOTS)
 
-HOME = f'''
+upcoming = ''.join(f"""
+      <figure class="next">
+        <img src="assets/img/next-{key}.webp" alt="Hand-drawn map of {name}, in development" loading="lazy" width="{w}" height="{h}">
+        <figcaption><strong>{name}</strong><span>{region} · <span lang="zh-Hans">{zh}</span></span></figcaption>
+      </figure>""" for key, name, region, zh, w, h in NEXT)
+
+HOME = f"""
 <section class="hero">
   <div class="wrap hero-inner">
     <div class="hero-text">
-      <p class="eyebrow">Offline guide · Beijing</p>
+      <p class="eyebrow">Offline audio guide · Beijing</p>
       <h1>Beijing's imperial sights, beautifully drawn.</h1>
-      <p class="lede">Penyola is an English guide for international visitors to Jingshan Park, the Forbidden City and the Summer Palace. Hand-drawn maps, narrated stories and ready-made walking routes, all stored on your iPhone so they work without a connection.</p>
+      <p class="lede">An English guide for international visitors to Jingshan Park, the Forbidden City and the Summer Palace. Hand-drawn maps, narrated stories and ready-made walking routes, all on your iPhone, with no connection needed.</p>
       <div class="cta">{store_button()}<a class="text-link" href="#guides">See the guides ↓</a></div>
-      <p class="note">Free to download. Jingshan Park is free; one purchase unlocks the rest.</p>
+      <p class="note">{'Free to download for iPhone.' if RELEASED else 'Launching soon for iPhone.'} Jingshan Park is free; one purchase unlocks the rest.</p>
     </div>
-    <div class="hero-phone"><img src="assets/img/hero.webp" alt="Penyola showing the hand-drawn Forbidden City map" width="530" height="1118"></div>
+    <div class="hero-art">
+      <img class="hero-lion" src="assets/img/art-lion.webp" alt="" width="600" height="727">
+      <div class="hero-phone"><img src="assets/img/hero.webp" alt="Penyola showing the hand-drawn Forbidden City map" width="530" height="1118"></div>
+    </div>
+  </div>
+</section>
+
+<section class="stats" aria-label="At a glance">
+  <div class="wrap stats-inner">
+    <p><strong>3</strong>guides</p>
+    <p><strong>129</strong>illustrated highlights</p>
+    <p><strong>150+</strong>audio stories</p>
+    <p><strong>0</strong>bars of signal needed</p>
   </div>
 </section>
 
 <section class="band" id="guides">
   <div class="wrap">
-    <p class="eyebrow">Three guides</p>
-    <h2>One app, three of Beijing's great sites</h2>
+    <div class="head">
+      <p class="eyebrow">The guides</p>
+      <h2>Three of Beijing's great sites, in one app</h2>
+    </div>
     <div class="guides">{guides}
     </div>
   </div>
 </section>
 
-<section class="band alt">
+<section class="band paper">
+  <div class="wrap story">
+    <div class="story-text">
+      <p class="eyebrow">Every detail has a story</p>
+      <h2>See what most visitors walk past</h2>
+      <p>Bronze lions guarding the gates, the crane and tortoise before the throne hall, the sundial that told imperial time. Penyola points them out on the map and tells you why they are there.</p>
+    </div>
+    <div class="relics" aria-hidden="true">
+      <img src="assets/img/art-crane.webp" alt="" loading="lazy" width="600" height="600">
+      <img src="assets/img/art-throne.webp" alt="" loading="lazy" width="600" height="600">
+      <img src="assets/img/art-sundial.webp" alt="" loading="lazy" width="600" height="600">
+    </div>
+  </div>
+</section>
+
+<section class="band">
   <div class="wrap">
-    <p class="eyebrow">What's inside</p>
-    <h2>Made for walking around, not reading at home</h2>
-    <ul class="features">
-      <li><strong>Hand-drawn maps</strong> you can pinch and explore</li>
-      <li><strong>129 illustrated highlights</strong>, each with its own story</li>
-      <li><strong>150+ audio stories</strong> in two English voices</li>
-      <li><strong>Suggested routes</strong> with walking times between stops</li>
-      <li><strong>Visitor information</strong>: opening hours, ticket notes and entrances</li>
-      <li><strong>A Chinese address card</strong> to show your taxi driver</li>
-      <li><strong>Fully offline</strong>: no account, no sign-in, no ads</li>
+    <div class="head">
+      <p class="eyebrow">What's inside</p>
+      <h2>Made for walking around, not reading at home</h2>
+    </div>
+    <ul class="features">{features}
     </ul>
     <div class="shots" tabindex="0" aria-label="App screenshots">{shots}
     </div>
   </div>
 </section>
 
+<section class="band dark" id="coming">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">In the works</p>
+      <h2>More of China, being drawn</h2>
+      <p class="lede">We're drawing guides to more than 30 other sites across China. Here are a few of the maps in progress. <strong>Unlock All Guides includes every guide we add</strong>, at no extra cost.</p>
+    </div>
+    <div class="nexts">{upcoming}
+      <figure class="next wide">
+        <img src="assets/img/next-longmen.webp" alt="Panoramic drawing of the Longmen Grottoes, in development" loading="lazy" width="1600" height="533">
+        <figcaption><strong>Longmen Grottoes, West Hill</strong><span>Luoyang · <span lang="zh-Hans">龙门石窟</span></span></figcaption>
+      </figure>
+    </div>
+    <p class="fine">Previews of work in progress. Which guides arrive first, and when, isn't decided yet.</p>
+  </div>
+</section>
+
 <section class="band">
   <div class="wrap price">
-    <div>
+    <div class="price-card">
       <p class="eyebrow">Pay once</p>
       <h2>Free to start. One purchase for every guide.</h2>
       <p>Jingshan Park is free and complete. You can open the Forbidden City and Summer Palace maps before you buy. A single in-app purchase, <strong>Unlock All Guides</strong>, unlocks their stories, audio and routes, plus every guide added later.</p>
-      <p>No subscription and nothing renews. The price is US$6.99 in the United States; the App Store shows the price in your local currency.</p>
+      <p class="price-line"><strong>US$6.99</strong> one time · no subscription · nothing renews</p>
+      <p class="note">Price shown is for the United States; the App Store shows your local price.</p>
       <div class="cta">{store_button()}</div>
     </div>
     <img class="price-shot" src="assets/img/shot-07.webp" alt="The Unlock All Guides purchase screen" loading="lazy" width="720" height="1564">
   </div>
 </section>
-'''
+"""
 
 SUPPORT = f'''
 <section class="doc wrap">
